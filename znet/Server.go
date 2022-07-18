@@ -1,9 +1,11 @@
 package znet
 
 import (
+	"errors"
 	"fmt"
-	"github.com/k0k1a/zinx/ziface"
 	"net"
+
+	"github.com/k0k1a/zinx/ziface"
 )
 
 //iserver 接口的实现
@@ -16,6 +18,20 @@ type server struct {
 	IP string
 	//服务器监听的端口
 	Port int
+	//当前server的router，server连接对应的处理业务
+	Router ziface.IRouter
+}
+
+//定义当前客户端连接所绑定的Handle API
+func CallBackToClient(conn *net.TCPConn, data []byte, cnt int) error {
+
+	fmt.Println("[Conn Handle] CallbackTOClient...")
+	if _, err := conn.Write(data[:cnt]); err != nil {
+		fmt.Println("write callback err", err)
+		return errors.New("CallBackTOClient error")
+	}
+
+	return nil
 }
 
 func (s *server) Start() {
@@ -46,21 +62,12 @@ func (s *server) Start() {
 				continue
 			}
 
-			go func() {
-				for {
-					buf := make([]byte, 512)
-					cnt, err := conn.Read(buf)
-					if err != nil {
-						fmt.Println("read buf err", err)
-						continue
-					}
-					fmt.Printf("recv client buf %s, cnt %d\n", buf, cnt)
-					if _, err := conn.Write(buf[:cnt]); err != nil {
-						fmt.Println("write back buf err", err)
-						continue
-					}
-				}
-			}()
+			var cid uint32 = 0
+
+			dealConn := NewConnection(conn, cid, s.Router)
+
+			cid++
+			go dealConn.Start()
 		}
 	}()
 
@@ -77,6 +84,11 @@ func (s *server) Serve() {
 	select {}
 }
 
+func (s *server) AddRouter(router ziface.IRouter) {
+	s.Router = router
+	fmt.Println("Add Router Succ!!")
+}
+
 func New(name string) ziface.IServer {
 
 	s := &server{
@@ -84,6 +96,7 @@ func New(name string) ziface.IServer {
 		IPVersion: "tcp4",
 		IP:        "0.0.0.0",
 		Port:      8999,
+		Router:    nil,
 	}
 	return s
 }
