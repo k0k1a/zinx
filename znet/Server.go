@@ -2,13 +2,12 @@ package znet
 
 import (
 	"fmt"
-	"net"
-
 	"github.com/k0k1a/zinx/ziface"
+	"net"
 )
 
-//IServer 接口的实现
-type Server struct {
+//iserver 接口的实现
+type server struct {
 	//服务器的名称
 	Name string
 	//服务器绑定的IP版本
@@ -19,7 +18,7 @@ type Server struct {
 	Port int
 }
 
-func (s *Server) Start() {
+func (s *server) Start() {
 	fmt.Printf("[Start] Server Listenner at IP :%s,Port :%d, is starting", s.IP, s.Port)
 
 	go func() {
@@ -67,11 +66,11 @@ func (s *Server) Start() {
 
 }
 
-func (s *Server) Stop() {
+func (s *server) Stop() {
 	//TODO
 }
 
-func (s *Server) Serve() {
+func (s *server) Serve() {
 	s.Start()
 
 	//阻塞状态
@@ -80,7 +79,7 @@ func (s *Server) Serve() {
 
 func New(name string) ziface.IServer {
 
-	s := &Server{
+	s := &server{
 		Name:      name,
 		IPVersion: "tcp4",
 		IP:        "0.0.0.0",
