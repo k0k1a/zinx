@@ -57,6 +57,7 @@ func (s *server) Start() {
 		fmt.Println("start Zinx Serer succeed", s.Name, "succ,listenning...")
 
 		//3.阻塞的等待连接过来，处理客户端业务
+		var cid uint32 = 0
 		for {
 			//如果有客户端连接过来，阻塞回返回
 			conn, err := listenner.AcceptTCP()
@@ -64,8 +65,6 @@ func (s *server) Start() {
 				fmt.Println("Accept err", err)
 				continue
 			}
-
-			var cid uint32 = 0
 
 			dealConn := NewConnection(conn, cid, s.MsgHandler)
 
