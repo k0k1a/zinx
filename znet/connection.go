@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"sync"
 
 	"github.com/k0k1a/zinx/utils"
 	"github.com/k0k1a/zinx/ziface"
@@ -31,6 +32,12 @@ type Connection struct {
 
 	//消息的管理msgId和对应的处理业务API关系
 	MsgHandler ziface.IMsgHandle
+
+	//连接属性集合
+	property map[string]interface{}
+
+	//保护连接属性的锁
+	propertyLock sync.RWMutex
 }
 
 //初始化连接的方法
@@ -43,6 +50,7 @@ func NewConnection(server ziface.IServer, conn *net.TCPConn, connID uint32, msgH
 		isClosed:   false,
 		ExitChan:   make(chan bool, 1),
 		msgChan:    make(chan []byte),
+		property:   make(map[string]interface{}),
 	}
 	//将conn加入ConnManager中
 	c.TcpServer.GetConnManager().Add(c)
@@ -57,14 +65,6 @@ func (c *Connection) StartReader() {
 	defer c.Stop()
 
 	for {
-		//读取客户端数据到buf中
-		// buf := make([]byte, utils.GlobalObject.MaxPackageSize)
-		// _, err := c.Conn.Read(buf)
-		// if err != nil {
-		// 	fmt.Println("recv buf err", err)
-		// 	continue
-		// }
-
 		//创建一个拆包对象
 		dp := NewDataPack()
 
@@ -202,4 +202,34 @@ func (c *Connection) SendMsg(msgId uint32, data []byte) error {
 	c.msgChan <- binaryMsg
 
 	return nil
+}
+
+//设置连接属性
+func (c *Connection) SetProperty(key string, value interface{}) {
+	c.propertyLock.Lock()
+	defer c.propertyLock.Unlock()
+
+	//添加一个连接属性
+	c.property[key] = value
+}
+
+//获取连接属性
+func (c *Connection) GetProperty(key string) (interface{}, error) {
+	c.propertyLock.RLock()
+	defer c.propertyLock.RUnlock()
+
+	//读取属性
+	if value, ok := c.property[key]; ok {
+		return value, nil
+	}
+	return nil, errors.New("no property found")
+}
+
+//移除连接属性
+func (c *Connection) RemoveProperty(key string) {
+	c.propertyLock.Lock()
+	defer c.propertyLock.Unlock()
+
+	//删除属性
+	delete(c.property, key)
 }
