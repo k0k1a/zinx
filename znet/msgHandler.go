@@ -11,7 +11,7 @@ import (
 //消息处理模块的实现
 type MsgHandle struct {
 
-	//存放每个MsgId所对应的处理方法
+	//存放每个MsgId所对应的处理方法 MsgID->router
 	Apis map[uint32]ziface.IRouter
 
 	//负责Worker取任务的消息队列
