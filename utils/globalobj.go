@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/json"
 	"io/ioutil"
+	"os"
 
 	"github.com/k0k1a/zinx/ziface"
 )
@@ -28,6 +29,9 @@ type GlobalObj struct {
 	MaxWorkerTaskLen uint32 //每个worker对应的消息队列的任务的数量最大值
 }
 
+//配置文件位置，默认为当前目录下的conf/zinx.json
+const CONFIG_FILE_PATH = "conf/zinx.json"
+
 //定义一个全局的对外GlobalObj
 var GlobalObject *GlobalObj
 
@@ -36,7 +40,7 @@ func init() {
 	//如果配置文件没有加载，默认的值
 	GlobalObject = &GlobalObj{
 		Name:             "ZinxServerApp",
-		Version:          "v0.9",
+		Version:          "v1.0",
 		TcpPort:          8999,
 		Host:             "0.0.0.0",
 		MaxConn:          1000,
@@ -50,7 +54,12 @@ func init() {
 }
 
 func (g *GlobalObj) Reload() {
-	data, err := ioutil.ReadFile("conf/zinx.json")
+
+	if exists, _ := PathExists(CONFIG_FILE_PATH); !exists {
+		return
+	}
+
+	data, err := ioutil.ReadFile(CONFIG_FILE_PATH)
 	if err != nil {
 		panic(err)
 	}
@@ -58,4 +67,17 @@ func (g *GlobalObj) Reload() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+// PathExists 判断文件是否存在
+func PathExists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
 }

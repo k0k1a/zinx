@@ -8,7 +8,7 @@ import (
 	"github.com/k0k1a/zinx/ziface"
 )
 
-//消息处理模块的实现
+// MsgHandle 消息处理模块的实现
 type MsgHandle struct {
 
 	//存放每个MsgId所对应的处理方法 MsgID->router
@@ -29,7 +29,7 @@ func NewMsgHandle() *MsgHandle {
 	}
 }
 
-//调度/执行对应的Router消息处理方法
+// DoMsgHandler 调度/执行对应的Router消息处理方法
 func (m *MsgHandle) DoMsgHandler(request ziface.IRequest) {
 	//1 从Request中找到msgId
 	handler, ok := m.Apis[request.GetMsgID()]
@@ -44,7 +44,7 @@ func (m *MsgHandle) DoMsgHandler(request ziface.IRequest) {
 	//2 根据msgId 调度对应router业务即可
 }
 
-//为消息添加具体的处理逻辑
+// AddRouter 为消息添加具体的处理逻辑
 func (m *MsgHandle) AddRouter(msgId uint32, router ziface.IRouter) {
 	//1 判断当前msg绑定的API处理方法是否已经存在
 	if _, ok := m.Apis[msgId]; ok {
@@ -56,7 +56,7 @@ func (m *MsgHandle) AddRouter(msgId uint32, router ziface.IRouter) {
 	fmt.Println("Add api MsgId=", msgId, "succ!")
 }
 
-//启动一个worker工作池（开启工作池动作只能发生一次，一个zinx框架只能有一个worker工作池）
+// StartWorkerPool 启动一个worker工作池（开启工作池动作只能发生一次，一个zinx框架只能有一个worker工作池）
 func (m *MsgHandle) StartWorkerPool() {
 	//根据workerPoolSize 分别开启worker，每个worker用一个go来承载
 	for i := 0; i < int(m.WorkerPoolSize); i++ {
@@ -69,7 +69,7 @@ func (m *MsgHandle) StartWorkerPool() {
 
 }
 
-//启动一个worker工作流程
+// StartOneWorker 启动一个worker工作流程
 func (m *MsgHandle) StartOneWorker(workerID int, taskQueue chan ziface.IRequest) {
 	fmt.Println("Worker ID=", workerID, "is Started...")
 	//不断阻塞等待对应消息队列的消息
@@ -84,7 +84,7 @@ func (m *MsgHandle) StartOneWorker(workerID int, taskQueue chan ziface.IRequest)
 
 }
 
-//将消息交给TaskQueue，由Worker进行处理
+// SendMsgToTaskQueue 将消息交给TaskQueue，由Worker进行处理
 func (m *MsgHandle) SendMsgToTaskQueue(request ziface.IRequest) {
 	//1 平均分配给不同的worker
 	//根据客户端建立的ConnID进行分配

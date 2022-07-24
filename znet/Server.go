@@ -1,7 +1,6 @@
 package znet
 
 import (
-	"errors"
 	"fmt"
 	"net"
 
@@ -29,18 +28,6 @@ type server struct {
 	OnConnStop func(conn ziface.IConnection)
 }
 
-//定义当前客户端连接所绑定的Handle API
-func CallBackToClient(conn *net.TCPConn, data []byte, cnt int) error {
-
-	fmt.Println("[Conn Handle] CallbackTOClient...")
-	if _, err := conn.Write(data[:cnt]); err != nil {
-		fmt.Println("write callback err", err)
-		return errors.New("CallBackTOClient error")
-	}
-
-	return nil
-}
-
 func (s *server) Start() {
 	fmt.Printf("[Zinx] Server Name:%s,listener at IP:%s,Port:%d is starting\n",
 		utils.GlobalObject.Name, utils.GlobalObject.Host, utils.GlobalObject.TcpPort)
@@ -57,7 +44,7 @@ func (s *server) Start() {
 			return
 		}
 		//2.监听服务器地址
-		listenner, err := net.ListenTCP(s.IPVersion, addr)
+		listener, err := net.ListenTCP(s.IPVersion, addr)
 		if err != nil {
 			fmt.Println("listen", s.IPVersion, "err", err)
 			return
@@ -69,7 +56,7 @@ func (s *server) Start() {
 		//3.阻塞的等待连接过来，处理客户端业务
 		for {
 			//如果有客户端连接过来，阻塞回返回
-			conn, err := listenner.AcceptTCP()
+			conn, err := listener.AcceptTCP()
 			if err != nil {
 				fmt.Println("Accept err", err)
 				continue
@@ -108,7 +95,7 @@ func (s *server) AddRouter(msgId uint32, router ziface.IRouter) {
 	fmt.Println("Add Router Succ!!")
 }
 
-func New(name string) ziface.IServer {
+func NewServer() ziface.IServer {
 
 	s := &server{
 		Name:        utils.GlobalObject.Name,

@@ -40,7 +40,7 @@ type Connection struct {
 	propertyLock sync.RWMutex
 }
 
-//初始化连接的方法
+// NewConnection 初始化连接的方法
 func NewConnection(server ziface.IServer, conn *net.TCPConn, connID uint32, msgHandler ziface.IMsgHandle) *Connection {
 	c := &Connection{
 		TcpServer:  server,
@@ -58,7 +58,7 @@ func NewConnection(server ziface.IServer, conn *net.TCPConn, connID uint32, msgH
 	return c
 }
 
-//连接的读业务方法
+// StartReader 连接的读业务方法
 func (c *Connection) StartReader() {
 	fmt.Println("[Reader Goroutine is Running ...]")
 	defer fmt.Println("[Reader is exit!],connID=", c.ConnID, "remote addr is ", c.RemoteAddr().String())
@@ -109,7 +109,7 @@ func (c *Connection) StartReader() {
 	}
 }
 
-//写消息的Goroutine，专门发送给客户端消息的模块
+// StartWriter 写消息的Goroutine，专门发送给客户端消息的模块
 func (c *Connection) StartWriter() {
 	fmt.Println("[Writer Goroutine is Running...]")
 	defer fmt.Println("[conn Writer exit]", c.RemoteAddr().String())
@@ -130,7 +130,7 @@ func (c *Connection) StartWriter() {
 	}
 }
 
-//启动连接
+// Start 启动连接
 func (c *Connection) Start() {
 	fmt.Println("Conn Start() ... ConnID=", c.ConnID)
 	//启动当前连接的读数据的业务
@@ -142,7 +142,7 @@ func (c *Connection) Start() {
 	c.TcpServer.CallOnConnStart(c)
 }
 
-//停止连接
+// Stop 停止连接
 func (c *Connection) Stop() {
 	fmt.Println("Conn Stop .. ConnID =", c.ConnID)
 
@@ -168,22 +168,22 @@ func (c *Connection) Stop() {
 	close(c.msgChan)
 }
 
-//获取当前连接的绑定socket conn
+// GetTCPConnection 获取当前连接的绑定socket conn
 func (c *Connection) GetTCPConnection() *net.TCPConn {
 	return c.Conn
 }
 
-//获取当前连接模块的连接id
+// GetConnID 获取当前连接模块的连接id
 func (c *Connection) GetConnID() uint32 {
 	return c.ConnID
 }
 
-//获取远程客户端的TCP状态 IP port
+// RemoteAddr 获取远程客户端的TCP状态 IP port
 func (c *Connection) RemoteAddr() net.Addr {
 	return c.Conn.RemoteAddr()
 }
 
-//提供一个SendMsg方法，将我们要发送给客户端的数据，先进行封包，再发送
+// SendMsg 提供一个SendMsg方法，将我们要发送给客户端的数据，先进行封包，再发送
 func (c *Connection) SendMsg(msgId uint32, data []byte) error {
 	if c.isClosed {
 		return errors.New("Connection closed when send msg")
@@ -204,7 +204,7 @@ func (c *Connection) SendMsg(msgId uint32, data []byte) error {
 	return nil
 }
 
-//设置连接属性
+// SetProperty 设置连接属性
 func (c *Connection) SetProperty(key string, value interface{}) {
 	c.propertyLock.Lock()
 	defer c.propertyLock.Unlock()
@@ -213,7 +213,7 @@ func (c *Connection) SetProperty(key string, value interface{}) {
 	c.property[key] = value
 }
 
-//获取连接属性
+// GetProperty 获取连接属性
 func (c *Connection) GetProperty(key string) (interface{}, error) {
 	c.propertyLock.RLock()
 	defer c.propertyLock.RUnlock()
@@ -225,7 +225,7 @@ func (c *Connection) GetProperty(key string) (interface{}, error) {
 	return nil, errors.New("no property found")
 }
 
-//移除连接属性
+// RemoveProperty 移除连接属性
 func (c *Connection) RemoveProperty(key string) {
 	c.propertyLock.Lock()
 	defer c.propertyLock.Unlock()
