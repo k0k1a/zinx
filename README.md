@@ -10,6 +10,10 @@ zinx是一个TCP服务器框架，包括以下功能：
 - 连接回调函数
 - 设置连接属性
 
+初识zinx架构：
+
+![](./pic/jiagou.png)
+
 ### 2. 快速开始
 
 克隆代码到`GOPATH`中
@@ -254,9 +258,11 @@ RemoveProperty(key string)
 
 ![](./pic/zinx.class.png)
 
-##### 4.2 架构图
+##### 4.2 架构说明
 
 ![](./pic/jiagou.png)
+
+工作流程：
 
 0. 服务器启动（创建工作池Goroutine）。
 
