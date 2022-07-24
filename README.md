@@ -1,14 +1,16 @@
 ## zinx
 
-### 简单介绍
+### 1. 简单介绍
 
 zinx是一个TCP服务器框架，包括以下功能：
 
 - 注册路由
 - TCP连接管理
+- 消息封装
 - 连接回调函数
+- 设置连接属性
 
-### 快速开始
+### 2. 快速开始
 
 克隆代码到`GOPATH`中
 
@@ -16,7 +18,7 @@ zinx是一个TCP服务器框架，包括以下功能：
 $ git clone https://github.com/k0k1a/zinx.git
 ```
 
-#### Server
+#### 2.1 编写Server
 
 使用zinx编写TCP服务器，只需要3步
 
@@ -62,7 +64,7 @@ func (p *HelloRouter) Handle(request ziface.IRequest) {
 }
 ```
 
-#### Client
+#### 2.2 编写Client
 
 客户端使用TCP与服务器建立连接，消息格式为` MsgLen|MsgId|Data `
 
@@ -130,9 +132,9 @@ func main() {
 }
 ```
 
-### 参考文档
+### 3. 参考文档
 
-#### 配置文件
+#### 3.1 配置文件
 
 配置信息编写在server目录下的conf/zinx.json文件中。
 
@@ -159,7 +161,7 @@ func main() {
 
 `MaxWorkerTaskLen`:工作队列的最大长度
 
-#### 注册路由
+#### 3.2 注册路由
 
 ```go
 //注册路由时，嵌入baserouter基类，然后根据需要对这个基类的方法进行重写
@@ -175,7 +177,7 @@ func (br *BaseRouter) Handle(request ziface.IRequest) {}
 func (br *BaseRouter) PostHandle(request ziface.IRequest) {}
 ```
 
-#### 注册回调函数
+#### 3.3 注册回调函数
 
 注册连接建立后的回调方法：
 
@@ -189,7 +191,7 @@ server.SetOnConnStart(func(conn ziface.IConnection) {})
 server.SetOnConnStop(func(conn ziface.IConnection) {})
 ```
 
-#### API
+#### 3.4 API
 
 ##### ziface.IRequest
 
@@ -246,3 +248,20 @@ GetProperty(key string) (interface{}, error)
 RemoveProperty(key string)
 ```
 
+### 4. 设计思想
+
+##### 4.1 类图
+
+![](./pic/zinx.class.png)
+
+##### 4.2 架构图
+
+![](./pic/jiagou.png)
+
+0. 服务器启动（创建工作池Goroutine）。
+
+1. 客户端与服务器建立TCP连接。
+2. 服务器启动处理连接的Goroutine1。
+3. Goroutine1创建Writer Goroutine和Reader Goroutine。
+4. Reader Goroutine给具体的某一个Worker(chan)发送消息，Worker收到消息后进行处理业务逻辑。
+5. Writer Goroutine等待消息通道的消息，收到消息后发送给客户端。（Router给此通道发送消息）
